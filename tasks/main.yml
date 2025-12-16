@@ -1,0 +1,106 @@
+---
+- include_tasks: redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- include_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Downloading freeRadius sources
+  ansible.builtin.get_url:
+    url: "{{ freeradius_tarball_url }}"
+    dest: "/tmp/freeradius-server-{{ freeradius_ver }}.tar.gz"
+  register: freeradius_source
+
+- name: Unpacking freeRadius
+  when: freeradius_source.changed
+  ansible.builtin.unarchive:
+    copy: no
+    dest: /tmp
+    src: "{{ freeradius_source.dest }}"
+  register: freeradius_source_unpack
+
+- name: Configuring freeRadius source with custom modules
+  when: freeradius_source_unpack.changed
+  ansible.builtin.command: './configure --prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --sysconfdir=/etc --datadir=/usr/share CFLAGS="-I/usr/include/openssl"'
+  args:
+    chdir: "{{ freeradius_source_unpack.dest }}/freeradius-server-{{ freeradius_ver }}"
+  register: freeradius_configure
+
+- name: Installing freeRadius
+  when: freeradius_configure.changed
+  ansible.builtin.shell: make -j$(nproc) && make install
+  args:
+    chdir: "{{ freeradius_source_unpack.dest }}/freeradius-server-{{ freeradius_ver }}"
+
+- name: Remove freeradius dir
+  ansible.builtin.file:
+    path: "/tmp/freeradius-server-{{ freeradius_ver }}"
+    state: absent
+
+- name: Installing clients.conf
+  ansible.builtin.template:
+    src: clients.conf.j2
+    dest: /etc/raddb/clients.conf
+
+- name: backup eap mod
+  ansible.builtin.copy:
+    src: /etc/raddb/mods-available/eap
+    dest: /etc/raddb/mods-available/eap.bkp
+    remote_src: yes
+    #owner: root
+    #group: root
+    #mode: '0644'
+    backup: yes
+
+- name: Installing eap.conf
+  ansible.builtin.copy:
+    src: eap.conf
+    dest: /etc/raddb/mods-available/eap
+
+- name: enable eap mod
+  ansible.builtin.file:
+    src: /etc/raddb/mods-available/eap
+    dest: /etc/raddb/mods-enabled/eap
+    state: link
+
+- name: backup sql mod
+  ansible.builtin.copy:
+    src: /etc/raddb/mods-available/sql
+    dest: /etc/raddb/mods-available/sql.bkp
+    remote_src: yes
+    backup: yes
+
+- name: Installing mysql.conf
+  ansible.builtin.template:
+    src: mysql.conf.j2
+    dest: /etc/raddb/mods-available/sql
+
+- name: enable sql mod
+  ansible.builtin.file:
+    src: /etc/raddb/mods-available/sql
+    dest: /etc/raddb/mods-enabled/sql
+    state: link
+
+- name: Ensure group "radiusd" exists
+  ansible.builtin.group:
+    name: radiusd
+    state: present
+
+- name: Add the user 'radiusd'
+  ansible.builtin.user:
+    name: radiusd
+    group: radiusd
+    create_home: no
+    system: yes
+    state: present
+
+- include_tasks: mysql.yml
+
+- name: Installing freeRadius init script (service)
+  notify: Restart freeRadius
+  ansible.builtin.template:
+    src: radiusd.service.j2
+    dest: /etc/systemd/system/radiusd.service
+    #owner: root
+    #group: root
+    #mode: 0755

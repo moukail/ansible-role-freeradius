@@ -1,0 +1,70 @@
+---
+- name: Install python packages
+  when: ansible_os_family == "Debian"
+  ansible.builtin.apt:
+    name: python3-pymysql
+    update_cache: yes
+    state: latest
+
+- name: Install python packages
+  when: ansible_os_family == "Redhat"
+  ansible.builtin.pip:
+    name: PyMySQL
+
+- name: Create a new database with name 'radius'
+  when: (db_login_host is defined) and (db_login_host|length > 0)
+  community.mysql.mysql_db:
+    login_host: "{{ db_login_host }}"
+    login_user: root
+    login_password: "{{ db_root_password | trim }}"
+    name: radius
+    state: present
+
+- name: Create a new user with name 'radius'
+  when: db_type == "mariadb"
+  community.mysql.mysql_user:
+    login_host: "{{ db_login_host }}"
+    login_password: "{{ db_root_password | trim }}"
+    name: "{{ radius_db_name }}"
+    host: '%'
+    priv: '{{ radius_db_name }}.*:ALL,GRANT'
+    password: "{{ radius_db_password | trim }}"
+    state: present
+
+- name: Create a new user with name 'radius'
+  when: db_type == "mysql"
+  community.mysql.mysql_user:
+    login_host: "{{ db_login_host }}"
+    login_password: "{{ db_root_password | trim }}"
+    name: "{{ radius_db_name }}"
+    host: '%'
+    priv: '{{ radius_db_name }}.*:ALL,GRANT'
+    plugin_auth_string: "{{ radius_db_password | trim }}"
+    plugin: caching_sha2_password
+    state: present
+
+- name: Restore database
+  when: ansible_distribution != "OracleLinux"
+  community.mysql.mysql_db:
+    login_host: "{{ db_login_host }}"
+    login_user: root
+    login_password: "{{ db_root_password | trim }}"
+    name: "{{ radius_db_name }}"
+    state: import
+    target: /etc/raddb/mods-config/sql/main/mysql/schema.sql
+    #target: "{{ radius_sql.dest }}"
+
+- name: Restore database
+  when: ansible_distribution == "OracleLinux" and db_type == "mariadb"
+  ansible.builtin.shell: mariadb --skip_ssl -h {{ db_login_host }} -u root -p{{ db_root_password | trim }} {{ radius_db_name }} < /etc/raddb/mods-config/sql/main/mysql/schema.sql
+
+- name: Run several insert queries against db test_db in single transaction
+  when: (db_login_host is defined) and (db_login_host|length > 0)
+  community.mysql.mysql_query:
+    login_host: "{{ db_login_host }}"
+    login_user: "{{ radius_db_user }}"
+    login_password: "{{ radius_db_password | trim }}"
+    login_db: "{{ radius_db_name }}"
+    query:
+      - INSERT IGNORE INTO {{ radius_db_name }}.radcheck (username, attribute, op, value) VALUES ('ismail', 'Cleartext-Password', ':=', 'meknes79!')
+    single_transaction: yes

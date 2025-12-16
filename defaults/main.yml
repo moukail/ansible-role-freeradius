@@ -1,0 +1,6 @@
+---
+freeradius_version: 3.2.8
+db_type: mysql # mariadb #
+db_login_host: db.moukail.nl
+radius_db_name: radius
+radius_db_user: radius

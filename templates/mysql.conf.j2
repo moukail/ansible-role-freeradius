@@ -1,0 +1,45 @@
+sql {
+
+	dialect = "mysql"
+	driver = "rlm_sql_${dialect}"
+
+	mysql {
+		warnings = yes
+	}
+
+	server = "{{ db_login_host }}"
+	port = 3306
+	login = "{{ radius_db_user }}"
+	password = "{{ radius_db_password | trim }}"
+	radius_db = "{{ radius_db_name }}"
+	acct_table1 = "radacct"
+	acct_table2 = "radacct"
+	postauth_table = "radpostauth"
+	authcheck_table = "radcheck"
+	groupcheck_table = "radgroupcheck"
+
+	authreply_table = "radreply"
+	groupreply_table = "radgroupreply"
+
+	usergroup_table = "radusergroup"
+	delete_stale_sessions = yes
+#	logfile = ${logdir}/sqllog.sql
+
+	pool {
+		start = ${thread[pool].start_servers}
+		min = ${thread[pool].min_spare_servers}
+		max = ${thread[pool].max_servers}
+		spare = ${thread[pool].max_spare_servers}
+		uses = 0
+		retry_delay = 30
+		lifetime = 0
+		idle_timeout = 60
+		max_retries = 5
+	}
+
+	client_table = "nas"
+	group_attribute = "SQL-Group"
+
+	# Read database-specific queries
+	$INCLUDE ${modconfdir}/${.:name}/main/${dialect}/queries.conf
+}

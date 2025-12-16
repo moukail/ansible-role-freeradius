@@ -1,0 +1,7 @@
+---
+- name: Restart freeRadius
+  ansible.builtin.systemd:
+    name: radiusd.service
+    daemon_reload: yes
+    state: restarted
+    enabled: yes

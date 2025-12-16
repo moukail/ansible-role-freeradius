@@ -1,0 +1,19 @@
+client localhost {
+    ipaddr = 127.0.0.1
+    secret = meknes
+    proto  = *
+    nas_type = other
+    require_message_authenticator = yes
+    limit {
+        max_connections = 16
+        lifetime = 0
+        idle_timeout = 30
+    }
+}
+
+{% for radius_client in radius_clients %}
+client {{radius_client.ipaddr}} {
+    ipaddr = {{radius_client.ipaddr}}
+    secret = {{radius_client.secret}}
+}
+{% endfor %}

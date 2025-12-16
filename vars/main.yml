@@ -1,0 +1,2 @@
+---
+download_url: https://www.freeradius.org/ftp/pub/freeradius/freeradius-server-{{ freeradius_version }}.tar.gz

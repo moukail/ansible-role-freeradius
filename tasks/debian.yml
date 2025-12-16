@@ -1,0 +1,26 @@
+---
+- name: Add the GPG key for deb-multimedia repository
+  when: ansible_distribution == "Debian"
+  ansible.builtin.apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: '5C808C2B65558117'
+    state: present
+
+- name: Add Debian repository into sources list
+  when: ansible_distribution == "Debian"
+  ansible.builtin.apt_repository:
+    repo: deb https://www.deb-multimedia.org bookworm main non-free
+    update_cache: yes
+    state: present
+
+- name: Installing freeRadius Dependencies Debian
+  ansible.builtin.apt:
+    name: [libtalloc-dev, libkqueue-dev, libssl-dev, libmysqlclient-dev, mysql-client]
+    update_cache: yes
+    state: latest
+
+- name: Allow traffic
+  ansible.builtin.shell: |
+    ufw allow 1812,1813/udp
+    ufw allow 1812,1813/tcp
+    ufw reload

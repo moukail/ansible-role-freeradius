@@ -15,7 +15,9 @@
 
 - name: Installing freeRadius Dependencies RedHat
   ansible.builtin.dnf:
-    name: ['mysql-devel', '{{ db_type }}'] #'hiredis-devel'
+    name: 
+      - mysql-devel
+      - '{{ db_type }}' #'hiredis-devel'
     update_cache: yes
     state: latest
 

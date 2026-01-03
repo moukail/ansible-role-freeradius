@@ -1,0 +1,55 @@
+---
+- name: Installing dependencies
+  ansible.builtin.package:
+    name:
+      - gcc
+      - make
+
+- include_tasks: redhat.yml
+  when: ansible_os_family == "RedHat"
+
+- include_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Create temporary build directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: build
+  register: tmp_dir
+
+- name: Downloading freeRadius sources
+  ansible.builtin.get_url:
+    url: "{{ download_url }}"
+    dest: "{{ tmp_dir.path }}/freeradius-server-{{ freeradius_version }}.tar.gz"
+  register: freeradius_source
+
+- name: Unpacking freeRadius
+  ansible.builtin.unarchive:
+    copy: false
+    dest: "{{ tmp_dir.path }}"
+    src: "{{ freeradius_source.dest }}"
+
+- name: Set build_dir
+  ansible.builtin.set_fact:
+    build_dir: "{{ tmp_dir.path }}/freeradius-server-{{ freeradius_version }}"
+
+- name: Configuring freeRadius source with custom modules
+  ansible.builtin.command: './configure --prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --sysconfdir=/etc --datadir=/usr/share CFLAGS="-I/usr/include/openssl"'
+  args:
+    chdir: "{{ build_dir }}"
+    creates: "{{ build_dir }}/Make.inc"
+
+- name: Build
+  ansible.builtin.command: make
+  args:
+    chdir: "{{ build_dir }}"
+
+- name: Install
+  ansible.builtin.command: make install
+  args:
+    chdir: "{{ build_dir }}"
+
+- name: Remove freeradius dir
+  ansible.builtin.file:
+    path: "{{ tmp_dir.path }}"
+    state: absent

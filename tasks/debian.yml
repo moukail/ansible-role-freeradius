@@ -15,7 +15,12 @@
 
 - name: Installing freeRadius Dependencies Debian
   ansible.builtin.apt:
-    name: [libtalloc-dev, libkqueue-dev, libssl-dev, libmysqlclient-dev, mysql-client]
+    name: 
+      - libtalloc-dev
+      - libkqueue-dev
+      - libssl-dev
+      - libmysqlclient-dev
+      - mysql-client
     update_cache: yes
     state: latest
 

@@ -1,41 +1,18 @@
 ---
-- include_tasks: redhat.yml
-  when: ansible_os_family == "RedHat"
+- name: Get current version
+  ansible.builtin.shell: radiusd -v | cut -f3 -d' ' | head -n2 | tail -n1
+  register: current_version
+  changed_when: false
 
-- include_tasks: debian.yml
-  when: ansible_os_family == "Debian"
+- name: Check if radiusd is already installed
+  ansible.builtin.debug:
+    msg: "Current radiusd version is {{ current_version.stdout }}"
 
-- name: Downloading freeRadius sources
-  ansible.builtin.get_url:
-    url: "{{ freeradius_tarball_url }}"
-    dest: "/tmp/freeradius-server-{{ freeradius_ver }}.tar.gz"
-  register: freeradius_source
+- name: Compile radius from source code
+  ansible.builtin.include_tasks: install.yml
+  when: current_version.stdout != freeradius_version
 
-- name: Unpacking freeRadius
-  when: freeradius_source.changed
-  ansible.builtin.unarchive:
-    copy: no
-    dest: /tmp
-    src: "{{ freeradius_source.dest }}"
-  register: freeradius_source_unpack
 
-- name: Configuring freeRadius source with custom modules
-  when: freeradius_source_unpack.changed
-  ansible.builtin.command: './configure --prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --sysconfdir=/etc --datadir=/usr/share CFLAGS="-I/usr/include/openssl"'
-  args:
-    chdir: "{{ freeradius_source_unpack.dest }}/freeradius-server-{{ freeradius_ver }}"
-  register: freeradius_configure
-
-- name: Installing freeRadius
-  when: freeradius_configure.changed
-  ansible.builtin.shell: make -j$(nproc) && make install
-  args:
-    chdir: "{{ freeradius_source_unpack.dest }}/freeradius-server-{{ freeradius_ver }}"
-
-- name: Remove freeradius dir
-  ansible.builtin.file:
-    path: "/tmp/freeradius-server-{{ freeradius_ver }}"
-    state: absent
 
 - name: Installing clients.conf
   ansible.builtin.template:
@@ -47,9 +24,6 @@
     src: /etc/raddb/mods-available/eap
     dest: /etc/raddb/mods-available/eap.bkp
     remote_src: yes
-    #owner: root
-    #group: root
-    #mode: '0644'
     backup: yes
 
 - name: Installing eap.conf

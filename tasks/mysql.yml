@@ -58,13 +58,13 @@
   when: ansible_distribution == "OracleLinux" and db_type == "mariadb"
   ansible.builtin.shell: mariadb --skip_ssl -h {{ db_login_host }} -u root -p{{ db_root_password | trim }} {{ radius_db_name }} < /etc/raddb/mods-config/sql/main/mysql/schema.sql
 
-- name: Run several insert queries against db test_db in single transaction
-  when: (db_login_host is defined) and (db_login_host|length > 0)
-  community.mysql.mysql_query:
-    login_host: "{{ db_login_host }}"
-    login_user: "{{ radius_db_user }}"
-    login_password: "{{ radius_db_password | trim }}"
-    login_db: "{{ radius_db_name }}"
-    query:
-      - INSERT IGNORE INTO {{ radius_db_name }}.radcheck (username, attribute, op, value) VALUES ('ismail', 'Cleartext-Password', ':=', 'meknes79!')
-    single_transaction: yes
+#- name: Run several insert queries against db test_db in single transaction
+#  when: (db_login_host is defined) and (db_login_host|length > 0)
+#  community.mysql.mysql_query:
+#    login_host: "{{ db_login_host }}"
+#    login_user: "{{ radius_db_user }}"
+#    login_password: "{{ radius_db_password | trim }}"
+#    login_db: "{{ radius_db_name }}"
+#    query:
+#      - INSERT IGNORE INTO {{ radius_db_name }}.radcheck (username, attribute, op, value) VALUES ('ismail', 'Cleartext-Password', ':=', 'meknes79!')
+#    single_transaction: yes

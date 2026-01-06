@@ -20,11 +20,3 @@
       - '{{ db_type }}' #'hiredis-devel'
     update_cache: yes
     state: latest
-
-- name: add radius port
-  ansible.builtin.firewalld:
-    zone: public
-    service: radius
-    permanent: yes
-    immediate: yes
-    state: enabled

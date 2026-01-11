@@ -1,0 +1,15 @@
+---
+- name: converge | all
+  hosts: all
+  remote_user: root
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Apply nginx role
+      ansible.builtin.include_role:
+        name: ansible-role-freeradius
+    
+    - name: Show message
+      ansible.builtin.debug:
+        msg: "Converge task executed."

@@ -1,0 +1,50 @@
+---
+driver:
+  options:
+    managed: false
+    ansible_connection_options:
+      ansible_connection: local
+platforms:
+  - name: localhost
+dependency:
+  name: galaxy
+  options:
+    #role-file: ansible-galaxy-requirements.yml
+    #requirements-file: ansible-galaxy-requirements.yml
+    ignore-errors: true
+    force: false
+provisioner:
+  name: ansible
+  inventory:
+    links:
+      group_vars: group_vars
+verifier:
+  name: ansible
+prerun: false
+
+ansible:
+  cfg:
+    defaults:
+      host_key_checking: false
+      verbosity: 1
+    ssh_connection:
+      pipelining: true
+  env:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    #- cleanup
+    #- destroy
+    #- syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    #- side_effect
+    - verify
+    - cleanup
+    - destroy

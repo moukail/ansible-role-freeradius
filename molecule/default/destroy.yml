@@ -1,0 +1,12 @@
+---
+- name: destroy | all
+  hosts: all
+  remote_user: root
+  become: true
+  gather_facts: false
+  ignore_unreachable: true
+  
+  tasks:
+    - name: Show message
+      ansible.builtin.debug:
+        msg: "destroy task executed."

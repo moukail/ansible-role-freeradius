@@ -1,6 +1,8 @@
 #SPDX-License-Identifier: MIT-0
 ---
 galaxy_info:
+  role_name: ansible-role-freeradius
+  namespace: moukail
   author: I Moukafih
   description: Ansible Role for freeRadius
   license: MIT

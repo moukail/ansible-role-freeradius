@@ -1,0 +1,17 @@
+---
+- name: verify | all
+  hosts: all
+  #remote_user: root
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: Show message
+      ansible.builtin.debug:
+        msg: "verify task executed."
+
+    - name: ipsec version
+      ansible.builtin.command:
+        cmd: ipsec version
+      register: result
+      changed_when: result is not succeeded

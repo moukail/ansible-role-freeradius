@@ -1,0 +1,11 @@
+---
+- name: prepare | all
+  hosts: all
+  remote_user: root
+  become: true
+  gather_facts: false
+  
+  tasks:
+    - name: Show message
+      ansible.builtin.debug:
+        msg: "Prepare task executed."

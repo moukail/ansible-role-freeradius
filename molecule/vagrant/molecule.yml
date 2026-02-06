@@ -13,7 +13,7 @@ platforms:
   #  provider_options:
   #    video_type: 'vga'
   - name: stream9
-    box: centos/stream10
+    box: imoukafih/centos9s
     cpus: 1
     memory: 1024
     provider_options:
@@ -32,6 +32,8 @@ provisioner:
   inventory:
     links:
       group_vars: group_vars
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/.."
 
 verifier:
   name: ansible
@@ -43,7 +45,7 @@ ansible:
     defaults:
       host_key_checking: false
       verbosity: 1
-      library: ~/.local/lib/python3.12/site-packages/molecule_plugins/vagrant/modules
+      library: ~/snap/code/219/.local/share/pipx/venvs/molecule-plugins/lib/python3.12/site-packages/molecule_plugins/vagrant/modules
     ssh_connection:
       pipelining: true
   env:

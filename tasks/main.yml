@@ -12,8 +12,6 @@
   ansible.builtin.include_tasks: install.yml
   when: current_version.stdout != freeradius_version
 
-
-
 - name: Installing clients.conf
   ansible.builtin.template:
     src: clients.conf.j2

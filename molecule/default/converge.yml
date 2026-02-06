@@ -6,7 +6,7 @@
   gather_facts: true
 
   tasks:
-    - name: Apply nginx role
+    - name: Apply freeradius role
       ansible.builtin.include_role:
         name: ansible-role-freeradius
     

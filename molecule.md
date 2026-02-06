@@ -21,6 +21,10 @@ vagrant global-status
 sudo dnf install python3-pip
 python3 -m pip install --user molecule
 python3 -m pip install --user "molecule-plugins[podman]" "molecule-plugins[vagrant]"
+
+sudo apt install pipx 
+pipx install molecule
+pipx install --include-deps "molecule-plugins[podman]" "molecule-plugins[vagrant]" --force
 ```
 
 ###
